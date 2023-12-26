@@ -1,5 +1,5 @@
 global event, window, renderer
-global init_window, create_window, draw_on_window, close_window
+global init_window, create_window, create_renderer, draw_on_window, close_window
 
 section .data
     window_title     db 'SDL Window', 0
@@ -13,8 +13,12 @@ section .data
     window_msg          db "SDL_CreateWindow Worked", 10, 0
     window_msg_err      db "SDL_CreateWindow Error: %s", 10, 0
 
+    create_renderer_msg     db "SDL_CreateRenderer Worked", 10, 0
+    create_renderer_err db "SDL_CreateRenderer Error: %s", 10, 0 
+
 
     window_destroyed_msg    db "SDL_DestroyWindow Worked", 10, 0
+    renderer_destroyed_msg db "SDL_DestroyRenderer Worked", 10, 0
     sql_quit_msg        db "SDL_QUIT Worked", 10, 0
 
 
@@ -37,6 +41,7 @@ extern SDL_CreateWindow
 extern SDL_CreateRenderer
 extern SDL_PollEvent
 extern SDL_DestroyWindow
+extern SDL_DestroyRenderer
 extern SDL_Quit
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -59,8 +64,7 @@ init_window:
     ; Check return value here for errors (eax will contain the return value)
 
     cmp eax, 0             ; Check if SDL_Init returned a non-zero error code
-    mov rdi, init_err_msg  ; move string to rdi
-    jg print_error         ; If no error, skip error handling
+    jg init_window_error         ; If no error, skip error handling
 
     mov rdi, init_msg      ; mov message into register rdi
     call printf            ; call printf
@@ -68,6 +72,13 @@ init_window:
     mov rsp, rbp           ; Restore original stack pointer
     pop rbp                ; Restore original base pointer
     ret                    ; Return from function
+
+init_window_error:
+    call SDL_GetError      ; get sdl error string
+    mov rsi, rax           ; move return value of sdl_error to rsi
+    mov rdi, init_err_msg  ; move string to rdi
+    call printf            ; call printf
+    call exit              ; exit the application
 
 create_window:
     ; Create SDL WINDOW
@@ -86,8 +97,7 @@ create_window:
     call    SDL_CreateWindow
 
     cmp rax, 0  ; Check if therer is no error for creation of the window
-    mov rdi, window_msg_err  ; move string to rdi
-    je print_error ; if error jump to print error else continue
+    je create_window_error ; if error jump to print error else continue
 
     mov     [window], rax
 
@@ -97,6 +107,43 @@ create_window:
     mov rsp, rbp           ; Restore original stack pointer
     pop rbp                ; Restore original base pointer
     ret                    ; Return from function
+
+create_window_error:
+    call SDL_GetError      ; get sdl error string
+    mov rsi, rax           ; move return value of sdl_error to rsi
+    mov rdi, window_msg_err  ; move string to rdi
+    call printf            ; call printf
+    call exit              ; exit the application
+
+
+create_renderer:
+    ; Create Renderer
+    push rbp               ; Save base pointer
+    mov rbp, rsp           ; Set base pointer to current stack pointer
+    
+
+    ; Align the stack to 16 bytes
+    and rsp, -16           ; Ensure rsp is 16-byte aligned
+
+    mov rdi, window
+    cmp rax, 0
+    je create_renderer_error
+
+    mov [renderer], rax
+
+    mov rdi, create_renderer_msg  ; mov message into register rdi
+    call printf            ; call printf
+
+    mov rsp, rbp           ; Restore original stack pointer
+    pop rbp                ; Restore original base pointer
+    ret                    ; Return from function
+
+create_renderer_error:
+    call SDL_GetError      ; get sdl error string
+    mov rsi, rax           ; move return value of sdl_error to rsi
+    mov rdi, create_renderer_err  ; move string to rdi
+    call printf            ; call printf
+    call exit              ; exit the application
 
 draw_on_window:
     ;
@@ -108,6 +155,12 @@ close_window:
 
     ; Align the stack to 16 bytes
     and rsp, -16           ; Ensure rsp is 16-byte aligned
+
+    mov rdi, renderer
+    call SDL_DestroyRenderer
+
+    mov rdi, renderer_destroyed_msg
+    call printf
 
     mov     rdi, [window]
     call    SDL_DestroyWindow
