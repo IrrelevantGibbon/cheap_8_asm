@@ -54,7 +54,6 @@ section .bss
     window      resq 1
     renderer    resq 1
     texture     resq 1
-    event       resb 256  ; SDL_Event is quite large
 
 section .text
 ; Settings import
@@ -71,7 +70,6 @@ extern SDL_GetError
 extern SDL_CreateWindow 
 extern SDL_CreateRenderer
 extern SDL_CreateTexture
-extern SDL_PollEvent
 extern SDL_DestroyWindow
 extern SDL_DestroyRenderer
 extern SDL_DestroyTexture
