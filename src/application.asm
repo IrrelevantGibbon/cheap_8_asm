@@ -12,6 +12,8 @@ extern create_renderer
 extern create_texture
 extern close_window
 extern event
+extern draw_on_window
+
 
 extern renderer
 extern texture
@@ -40,40 +42,41 @@ run:
 
 loop_0:
 
-    mov rdi, renderer
+    mov rdi, [renderer]
     mov rsi, texture
     call SDL_SetRenderTarget
 
     ;;;; DRAW
+    call draw_on_window
 
-    mov rdi, renderer
+    mov rdi, [renderer]
     mov esi, 0
     call SDL_SetRenderTarget
         
-    mov rdi, renderer
+    mov rdi, [renderer]
     mov esi, 0
-    mov edx, 255
-    mov ecx, 255
+    mov edx, 0
+    mov ecx, 0
     mov r8,  255
     call SDL_SetRenderDrawColor
 
-    mov rdi, renderer
+    mov rdi, [renderer]
     call SDL_RenderClear
 
-    mov rdi, renderer
+    mov rdi, [renderer]
     mov rsi, texture
     mov rdx, 0
     mov rcx, 0
     call SDL_RenderCopy
 
-    mov rdi, renderer
+    mov rdi, [renderer]
     call SDL_RenderPresent
 
     mov rdi, [delay]
     call SDL_Delay
 
     inc r13
-    cmp r13, 2000000
+    cmp r13, 200
     jl loop_0
 
 

@@ -1,10 +1,34 @@
 global event, window, renderer, texture
 global init_window, create_window, create_renderer, create_texture, draw_on_window, close_window
 
+struc Rect
+    x: resd 1
+    y: resd 1
+    w: resd 1
+    h: resd 1
+endstruc
+
+
 section .data
     window_title     db 'SDL Window', 0
     window_width     dd 640
     window_height    dd 480
+
+    screen_rect:
+        istruc Rect
+            at x, dd 0; x
+            at y, dd 0; y
+            at w, dd 640; width
+            at h, dd 480; height
+        iend
+
+    pixel_rect:
+        istruc Rect
+            at x, dd 0; x
+            at y, dd 0; y
+            at w, dd 1; width
+            at h, dd 1; height
+        iend
 
 
     init_msg            db "SDL_Init Worked", 10, 0
@@ -51,6 +75,8 @@ extern SDL_PollEvent
 extern SDL_DestroyWindow
 extern SDL_DestroyRenderer
 extern SDL_DestroyTexture
+extern SDL_RenderFillRect
+extern SDL_SetRenderDrawColor
 extern SDL_Quit
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -193,8 +219,28 @@ create_texture_error:
 
 
 draw_on_window:
-    ; 
-    
+    ;  DRAW
+    push rbp               ; Save base pointer
+    mov rbp, rsp           ; Set base pointer to current stack pointer
+
+    ; Align the stack to 16 bytes
+    and rsp, -16           ; Ensure rsp is 16-byte aligned
+
+
+    mov rdi, [renderer]
+    mov esi, 0
+    mov edx, 0
+    mov ecx, 0
+    mov r8,  255
+    call SDL_SetRenderDrawColor
+
+    mov rdi, [renderer]
+    mov esi, [screen_rect]
+    call SDL_RenderFillRect
+
+    mov rsp, rbp           ; Restore original stack pointer
+    pop rbp                ; Restore original base pointer
+    ret
 
 close_window:
     ; Close SDL window
