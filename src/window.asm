@@ -193,7 +193,8 @@ create_texture_error:
 
 
 draw_on_window:
-    ;
+    ; 
+    
 
 close_window:
     ; Close SDL window
