@@ -3,6 +3,9 @@ global run
 section .data
     delay   dd 16
     quit    dd 0
+    event_founded_msg db "Event founded: %d", 10, 0
+    no_event_msg            db "No event", 10, 0
+    bite db "bite : %d", 10, 0
 
 section .text
 ; window management import
@@ -11,10 +14,9 @@ extern create_window
 extern create_renderer
 extern create_texture
 extern close_window
-extern event
 extern draw_on_window
 
-
+extern event
 extern renderer
 extern texture
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -26,9 +28,11 @@ extern SDL_SetRenderDrawColor
 extern SDL_RenderClear
 extern SDL_RenderCopy
 extern SDL_RenderPresent
+extern SDL_PollEvent
 ;;;;;;;;;;;;;;;
 
 ; Libc import
+extern printf
 extern exit
 ;;;;;;;;;;;;;;
 
@@ -37,10 +41,12 @@ run:
     call create_window
     call create_renderer
     call create_texture
-    mov r13, 0
-
 
 loop_0:
+
+    lea rdi, [event]
+    call SDL_PollEvent
+    call handle_event
 
     mov rdi, [renderer]
     mov rsi, texture
@@ -75,11 +81,46 @@ loop_0:
     mov rdi, [delay]
     call SDL_Delay
 
-    inc r13
-    cmp r13, 200
-    jl loop_0
-
+    jmp loop_0
 
 exit_application:
     call close_window
     call exit
+    ret
+
+handle_event:
+
+    ; Initialize SDL
+    push rbp               ; Save base pointer
+    mov rbp, rsp           ; Set base pointer to current stack pointer
+
+    ; Align the stack to 16 bytes
+    and rsp, -16           ; Ensure rsp is 16-byte aligned
+
+    cmp eax, 0
+    je no_event
+    jmp event_founded
+    
+
+no_event:
+    mov rdi, no_event_msg
+    call printf
+
+    mov rsp, rbp           ; Restore original stack pointer
+    pop rbp   
+    ret
+
+event_founded:
+    lea esi, [event]
+    ;mov rdi, event_founded_msg
+    ;lea esi, [event]
+    ;call printf
+
+    mov eax, [esi]
+    cmp eax, 0x100
+    je exit_application
+
+    mov rsp, rbp           ; Restore original stack pointer
+    pop rbp                ; Restore original base pointer
+    ret                    ; Return from function
+

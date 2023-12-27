@@ -85,7 +85,7 @@ extern SDL_Quit
 extern printf
 extern exit
 ;;;;;;;;;;;;;
-
+;0xF231
 init_window:
     ; Initialize SDL
     push rbp               ; Save base pointer
@@ -95,6 +95,7 @@ init_window:
     and rsp, -16           ; Ensure rsp is 16-byte aligned
 
     mov edi, 0x00000020    ; SDL_INIT_VIDEO flag
+    or edi, 0x00004000
     call SDL_Init          ; Call SDL_Init
     ; Check return value here for errors (eax will contain the return value)
 
@@ -276,9 +277,3 @@ close_window:
     mov rsp, rbp           ; Restore original stack pointer
     pop rbp                ; Restore original base pointer
     ret
-
-print_error:
-    call SDL_GetError      ; get sdl error string
-    mov rsi, rax           ; move return value of sdl_error to rsi
-    call printf            ; call printf
-    call exit              ; exit the application
