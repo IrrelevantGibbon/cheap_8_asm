@@ -10,7 +10,7 @@ endstruc
 
 
 section .data
-    window_title     db 'SDL Window', 0
+    window_title     db 'Cheap-8', 0
     window_width     dd 640
     window_height    dd 480
 
