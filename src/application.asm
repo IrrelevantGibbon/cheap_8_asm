@@ -21,6 +21,10 @@ extern texture
 extern handle_event
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; cpu imports
+extern init_cpu
+;;;;;;;;;;;;;;;
+
 ; SDL import
 extern SDL_Delay
 extern SDL_SetRenderTarget
@@ -41,6 +45,7 @@ run:
     call create_window
     call create_renderer
     call create_texture
+    call init_cpu
 
 loop_0:
 
