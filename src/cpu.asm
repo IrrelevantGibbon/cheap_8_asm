@@ -1,18 +1,6 @@
-global cpu_instance, init_cpu
+global cpu_instance, init_cpu, load_rom_into_memory_from_stack
 
-%define Cpu_struct_m_offset 0
-%define Cpu_struct_v_offset (Cpu_struct_m_offset + 4096)
-%define Cpu_struct_i_offset (Cpu_struct_v_offset + 16)
-%define Cpu_struct_dt_offset (Cpu_struct_i_offset + 2)
-%define Cpu_struct_st_offset (Cpu_struct_dt_offset + 1)
-%define Cpu_struct_pc_offset (Cpu_struct_st_offset + 1)
-%define Cpu_struct_sp_offset (Cpu_struct_pc_offset + 2)
-%define Cpu_struct_s_offset (Cpu_struct_sp_offset + 1)
-%define Cpu_struct_screen_offset (Cpu_struct_s_offset + 32)
-%define Cpu_struct_keys_offset (Cpu_struct_screen_offset + 2048)
-%define Cpu_struct_should_exit_offset (Cpu_struct_keys_offset + 16)
-%define Cpu_struct_pause_offset (Cpu_struct_should_exit_offset + 1)
-
+%include "src/cpu_offsets.asm"
 
 struc Cpu_struct
     .m resb 4096
@@ -25,12 +13,28 @@ struc Cpu_struct
     .s resw 16          ; Stack: 32 bytes (16 x 2-byte elements)
     .screen resb 2048   ; Screen: 8192 bytes
     .keys resb 16       ; Keys: 16 bytes
-    .should_exit resb 1 ; Should Exit: 1 byte
     .pause resb 1       ; Pause: 1 byte
 endstruc
 
 section .data
-    emulate_cycle dd 16
+    instructions_by_cycle dd 16
+    font :
+        db 0xF0, 0x90, 0x90, 0x90, 0xF0 ; 0
+        db 0x20, 0x60, 0x20, 0x20, 0x70 ; 1
+        db 0xF0, 0x10, 0xF0, 0x80, 0xF0 ; 2
+        db 0xF0, 0x10, 0xF0, 0x10, 0xF0 ; 3
+        db 0x90, 0x90, 0xF0, 0x10, 0x10 ; 4
+        db 0xF0, 0x80, 0xF0, 0x10, 0xF0 ; 5
+        db 0xF0, 0x80, 0xF0, 0x90, 0xF0 ; 6
+        db 0xF0, 0x10, 0x20, 0x40, 0x40 ; 7
+        db 0xF0, 0x90, 0xF0, 0x90, 0xF0 ; 8
+        db 0xF0, 0x90, 0xF0, 0x10, 0xF0 ; 9
+        db 0xF0, 0x90, 0xF0, 0x90, 0x90 ; A
+        db 0xE0, 0x90, 0xE0, 0x90, 0xE0 ; B
+        db 0xF0, 0x80, 0x80, 0x80, 0xF0 ; C
+        db 0xE0, 0x90, 0x90, 0x90, 0xE0 ; D
+        db 0xF0, 0x80, 0xF0, 0x80, 0xF0 ; E
+        db 0xF0, 0x80, 0xF0, 0x80, 0x80 ; F
 
 section .bss 
     cpu_instance resb Cpu_struct_size
@@ -65,7 +69,7 @@ init_cpu:
     mov byte [rdi], 0
 
     lea rdi, [cpu_instance + Cpu_struct_pc_offset]
-    mov word [rdi], 0
+    mov word [rdi], pc_counter_start
 
     lea rdi, [cpu_instance + Cpu_struct_sp_offset]
     mov byte [rdi], 0
@@ -85,12 +89,37 @@ init_cpu:
     xor al, al
     rep stosb
 
-    lea rdi, [cpu_instance + Cpu_struct_should_exit_offset]
-    mov byte [rdi], 0
-
     lea rdi, [cpu_instance + Cpu_struct_pause_offset]
     mov byte [rdi], 0
 
     mov rsp, rbp           ; Restore original stack pointer
     pop rbp                ; Restore original base pointer
     ret                    ; Return from function
+
+load_rom_into_memory_from_stack:
+    push rbp
+    mov rbp, rsp
+
+    ; Get file size
+    mov rcx, [rbp - 508]
+
+    ; Point to the start of the buffer
+    lea rsi, [rbp - 500]
+
+    lea rdi, [cpu_instance + Cpu_struct_pc_counter_start_offset]
+
+    rep movsb
+
+    mov rsp, rbp
+    pop rbp
+    ret
+
+fetch_op:
+    
+decode_op:
+
+execute_op:
+
+decrement_timers:
+
+emulate_cycle:

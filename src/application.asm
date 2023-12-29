@@ -1,8 +1,11 @@
 global run
 
+%include "src/cpu_offsets.asm"
+
 section .data
     delay   dd 16
     quit    dd 0
+    argc_message  db "Argc", 10, 0 
 
 section .text
 ; window management imports
@@ -22,8 +25,14 @@ extern handle_event
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ; cpu imports
+extern cpu_instance
 extern init_cpu
+extern load_rom_into_memory_from_stack
 ;;;;;;;;;;;;;;;
+
+; application_imports
+extern load_rom_from_file
+;;;;;;;;;;;;;;;;;;;;;
 
 ; SDL import
 extern SDL_Delay
@@ -41,17 +50,39 @@ extern exit
 ;;;;;;;;;;;;;;
 
 run:
+    pop rdi
+    cmp rdi, 2
+    jl no_args
+
+    pop rdi
+    pop r15
+
+    jmp init
+
+no_args:
+    jmp exit_
+
+init:
+    and rsp, -16           ; Ensure rsp is 16-byte aligned
+    call init_cpu
+    call load_rom_from_file
+    cmp rax, -1
+    je exit_
+    call load_rom_into_memory_from_stack
     call init_window
     call create_window
     call create_renderer
     call create_texture
-    call init_cpu
 
 loop_0:
 
     call handle_event
     cmp eax, -1
     je exit_application
+
+    lea rdi, [cpu_instance + Cpu_struct_pause_offset]
+    cmp rdi, 1
+    je loop_0
 
     mov rdi, [renderer]
     mov rsi, texture
@@ -90,5 +121,8 @@ loop_0:
 
 exit_application:
     call close_window
+    call exit_
+
+exit_:
     call exit
     ret

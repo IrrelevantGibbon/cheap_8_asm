@@ -2,7 +2,7 @@
 
 # Assembler and flags
 ASM=nasm
-ASMFLAGS=-f elf64
+ASMFLAGS=-f elf64 
 
 # Source and object files
 SRC=$(wildcard src/*.asm)
