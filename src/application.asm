@@ -65,10 +65,11 @@ no_args:
 init:
     and rsp, -16           ; Ensure rsp is 16-byte aligned
     call init_cpu
+
     call load_rom_from_file
     cmp rax, -1
     je exit_
-    call load_rom_into_memory_from_stack
+
     call init_window
     call create_window
     call create_renderer

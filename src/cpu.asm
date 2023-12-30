@@ -1,4 +1,4 @@
-global cpu_instance, init_cpu, load_rom_into_memory_from_stack
+global cpu_instance, init_cpu
 
 %include "src/cpu_offsets.asm"
 
@@ -95,24 +95,6 @@ init_cpu:
     mov rsp, rbp           ; Restore original stack pointer
     pop rbp                ; Restore original base pointer
     ret                    ; Return from function
-
-load_rom_into_memory_from_stack:
-    push rbp
-    mov rbp, rsp
-
-    ; Get file size
-    mov rcx, [rbp - 508]
-
-    ; Point to the start of the buffer
-    lea rsi, [rbp - 500]
-
-    lea rdi, [cpu_instance + Cpu_struct_pc_counter_start_offset]
-
-    rep movsb
-
-    mov rsp, rbp
-    pop rbp
-    ret
 
 fetch_op:
     

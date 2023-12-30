@@ -1,5 +1,18 @@
 global load_rom_from_file
 
+%include "src/cpu_offsets.asm"
+
+section .data
+    error_reading_file db "Error while trying to read or open the file", 10, 0
+
+; Cpu imports
+extern cpu_instance
+;;;;;;;;;;;;;
+
+; LibC imports
+extern printf
+;;;;;;;;;;;;;;;
+
 section .bss
     fd resq 1                       ; File descriptor
 
@@ -28,21 +41,17 @@ open_file:
 
 read_file_content:
     ; Read from the file
-
-    sub rsp, 500
-
     mov rax, 0                      ; syscall number for read
     mov rdi, [fd]                   ; first argument: file descriptor
-    mov rsi, rsp                 ; second argument: buffer
-    mov rdx, 500                   ; third argument: number of bytes to read
+    lea rsi, [cpu_instance + Cpu_struct_pc_counter_start_offset]                 ; second argument: buffer
+    mov rdx, 500      ; third argument: number of bytes to read
     syscall
-    push rax                ; store number of bytes read
 
     ; Check for end of file or error
-    cmp rax, 0                      ; 0 indicates end of file
-    je close_file
-    cmp rax, -1                     ; -1 indicates an error
-    je error
+    cmp rax, 0
+    jge close_file
+    cmp rax, -1
+    jle error
 
 
 close_file:
@@ -50,9 +59,16 @@ close_file:
     mov rax, 3                      ; syscall number for close
     mov rdi, [fd]                   ; first argument: file descriptor
     syscall
+
+    mov rsp, rbp           ; Restore original stack pointer
+    pop rbp                ; Restore original base pointer
     ret                    ; Return from function
 
 error:
+
+    mov rdi, error_reading_file
+    call printf
+
     mov rax, -1
     mov rsp, rbp           ; Restore original stack pointer
     pop rbp                ; Restore original base pointer
