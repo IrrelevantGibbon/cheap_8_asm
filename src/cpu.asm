@@ -2,6 +2,14 @@ global cpu_instance, init_cpu, emulate_cycle
 
 %include "src/cpu_offsets.asm"
 
+; instructions
+extern _cls
+extern _jp
+extern _ld
+extern _add
+extern _drw
+;;;;;;;;;;;;;;;
+
 struc Cpu_struct
     .m resb 4096
     .v resb 16          ; Registers: 16 bytes
@@ -181,7 +189,30 @@ decode_op:
     
 execute_op:
 
+    movz rax, word [rdi]
+
+    mov rsi, rax
+
+    mov rcx, 0xF000
+    and rsi, rcx
+
+
+    cmp rsi, 0x0000
+    je op_0x0000
+
+
+op_0x0000:
     
+    mov rcx, 0x000F
+    and rsi, rcx
+
+    cmp rsi, 0x0000
+    jmp 
+    
+
+op 0x1000:
+
+
 
 
 decrement_delay_timer:
