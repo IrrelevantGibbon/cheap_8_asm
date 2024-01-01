@@ -13,3 +13,5 @@
 
 %define pc_counter_start (0x200)
 %define Cpu_struct_pc_counter_start_offset (Cpu_struct_m_offset + pc_counter_start)
+
+%define Cpu_struct_v_f_flags (Cpu_struct_v_offset + 0xF)

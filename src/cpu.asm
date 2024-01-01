@@ -177,8 +177,11 @@ decode_op:
     and rax, 0xFFF
     mov [rsi + 6], ax
 
+    mov rdi, rsi
     
 execute_op:
+
+    
 
 
 decrement_delay_timer:
