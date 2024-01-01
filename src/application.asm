@@ -28,6 +28,7 @@ extern handle_event
 extern cpu_instance
 extern init_cpu
 extern load_rom_into_memory_from_stack
+extern emulate_cycle
 ;;;;;;;;;;;;;;;
 
 ; application_imports
@@ -84,6 +85,8 @@ loop_0:
     lea rdi, [cpu_instance + Cpu_struct_pause_offset]
     cmp rdi, 1
     je loop_0
+
+    call emulate_cycle
 
     mov rdi, [renderer]
     mov rsi, texture
